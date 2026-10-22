@@ -1,0 +1,70 @@
+{
+  "name": "siberfx/laravel-rustfs",
+  "description": "RustFS for Laravel 13+: S3 data plane (buckets, objects, versioning, object lock, lifecycle, replication, encryption, notifications, select), the full RustFS Admin API (IAM, quotas, tiers, pools, heal, KMS, site replication...) and a \"rustfs\" filesystem disk.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": ["rustfs", "s3", "object-storage", "minio", "laravel", "flysystem", "filesystem", "storage", "admin-api", "iam"],
+  "homepage": "https://github.com/siberfx/laravel-rustfs",
+  "support": {
+    "issues": "https://github.com/siberfx/laravel-rustfs/issues",
+    "source": "https://github.com/siberfx/laravel-rustfs",
+    "docs": "https://github.com/siberfx/laravel-rustfs/tree/main/docs"
+  },
+  "minimum-stability": "stable",
+  "authors": [
+    {
+      "name": "Selim Görmüş",
+      "email": "info@siberfx.com",
+      "role": "Software Engineer"
+    }
+  ],
+  "require": {
+    "php": "^8.4.27",
+    "ext-json": "*",
+    "aws/aws-sdk-php": "^3.400",
+    "guzzlehttp/guzzle": "^7.9|^8.0",
+    "illuminate/console": "^13.0",
+    "illuminate/contracts": "^13.0",
+    "illuminate/filesystem": "^13.0",
+    "illuminate/support": "^13.0",
+    "league/flysystem-aws-s3-v3": "^3.35"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.32",
+    "orchestra/testbench": "^11.0",
+    "pestphp/pest": "^4.0|^5.0",
+    "phpstan/phpstan": "^2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Siberfx\\RustFs\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Siberfx\\RustFs\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Siberfx\\RustFs\\RustFsServiceProvider"
+      ],
+      "aliases": {
+        "RustFs": "Siberfx\\RustFs\\Facades\\RustFs"
+      }
+    }
+  },
+  "scripts": {
+    "test": "pest",
+    "test:live": "pest --group=live",
+    "analyse": "phpstan analyse",
+    "format": "pint"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}

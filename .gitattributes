@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+# Keep Composer installs lean: tests, docs tooling and CI are not shipped in dist archives.
+# (They are in the repository; `composer require --prefer-source` includes them.)
+/.github            export-ignore
+/tests              export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/phpstan.neon.dist  export-ignore
+/phpunit.xml.dist   export-ignore
+/pint.json          export-ignore

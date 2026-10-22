@@ -1,0 +1,13 @@
+/vendor/
+composer.lock
+
+# tool caches
+.phpunit.cache/
+.phpunit.result.cache
+.phpstan-cache/
+
+# editors & assistants
+.idea/
+.vscode/
+.cursor/
+.claude/

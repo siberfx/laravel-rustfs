@@ -1,0 +1,130 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} (${{ matrix.stability }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+        stability: [prefer-lowest, prefer-stable]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, json, fileinfo, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer packages
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php${{ matrix.php }}-${{ matrix.stability }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ runner.os }}-php${{ matrix.php }}-${{ matrix.stability }}-
+
+      - name: Install dependencies
+        run: composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
+
+      - name: Run unit and feature tests
+        run: vendor/bin/pest --ci
+
+  live:
+    name: Live (RustFS ${{ matrix.rustfs }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rustfs: ['1.0.3']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Start RustFS
+        run: |
+          docker run -d --name rustfs -p 9000:9000 \
+            -e RUSTFS_ACCESS_KEY=rustfsadmin \
+            -e RUSTFS_SECRET_KEY=rustfs-ci-secret \
+            rustfs/rustfs:${{ matrix.rustfs }}
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:9000/health/ready > /dev/null; then echo "RustFS is ready"; exit 0; fi
+            sleep 2
+          done
+          docker logs rustfs
+          exit 1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, json, fileinfo, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run live tests
+        env:
+          RUSTFS_LIVE_ENDPOINT: http://127.0.0.1:9000
+          RUSTFS_LIVE_KEY: rustfsadmin
+          RUSTFS_LIVE_SECRET: rustfs-ci-secret
+          # /tmp exists inside the RustFS container
+          RUSTFS_LIVE_NOTIFY_QUEUE_DIR: /tmp
+        run: vendor/bin/pest --group=live --ci
+
+      - name: RustFS logs
+        if: failure()
+        run: docker logs rustfs 2>&1 | tail -200
+
+  quality:
+    name: PHPStan & Pint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, json, fileinfo, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+      - name: Pint
+        run: vendor/bin/pint --test
