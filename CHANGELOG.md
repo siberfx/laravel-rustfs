@@ -2,7 +2,7 @@
 
 All notable changes to this package are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the package uses [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.1] - 2026-10-23
 
 ### Documentation
 
@@ -37,5 +37,5 @@ First release. Requires PHP 8.4.27+ and Laravel 13+. Verified against RustFS 1.0
 - Notification and audit target types are config sub-systems (`notify_webhook`, `audit_kafka`, ...), so short names get the right prefix.
 - Module switch updates must carry both flags, so the flag you leave out keeps its current value.
 
-[Unreleased]: https://github.com/siberfx/laravel-rustfs/compare/1.0.0...main
+[1.0.1]: https://github.com/siberfx/laravel-rustfs/releases/tag/1.0.1
 [1.0.0]: https://github.com/siberfx/laravel-rustfs/releases/tag/1.0.0
