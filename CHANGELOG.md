@@ -2,6 +2,17 @@
 
 All notable changes to this package are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the package uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Documentation
+
+- Rewrote the README as a recipe-based usage guide: form uploads, private downloads, presigned PUT/POST, multipart, public folders, versioning, WORM, lifecycle, KMS, event notifications with a receiving route, S3 Select, CORS, replication, tenant provisioning, service accounts, backups, tracing, error handling and testing.
+- Documented two RustFS 1.0.x behaviours found while verifying the recipes: presigned PUT URLs do not enforce the signed `Content-Type` or any size, while presigned POST policies are enforced (`EntityTooLarge`, `InvalidPolicyDocument`).
+
+### Tests
+
+- Live tests for presigned POST policy enforcement and for restoring an older version by copying it onto the same key.
+
 ## [1.0.0] - 2026-10-23
 
 First release. Requires PHP 8.4.27+ and Laravel 13+. Verified against RustFS 1.0.1 (Laravel Herd) and the `rustfs/rustfs` Docker image.
@@ -26,4 +37,5 @@ First release. Requires PHP 8.4.27+ and Laravel 13+. Verified against RustFS 1.0
 - Notification and audit target types are config sub-systems (`notify_webhook`, `audit_kafka`, ...), so short names get the right prefix.
 - Module switch updates must carry both flags, so the flag you leave out keeps its current value.
 
+[Unreleased]: https://github.com/siberfx/laravel-rustfs/compare/1.0.0...main
 [1.0.0]: https://github.com/siberfx/laravel-rustfs/releases/tag/1.0.0

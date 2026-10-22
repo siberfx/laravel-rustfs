@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 
 use Aws\S3\Exception\S3Exception;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Siberfx\RustFs\Admin\Enums\AccountStatus;
@@ -266,4 +267,36 @@ it('delivers bucket events to a notification target', function () {
         rescue(fn () => $admin->config()->delete("notify_webhook:{$target}"), report: false);
         $admin->config()->updateModuleSwitches((bool) $before['notify_enabled'], (bool) $before['audit_enabled']);
     }
+});
+
+it('enforces presigned POST policies on the server', function () {
+    $this->rustfs->buckets()->create($this->bucket);
+    $form = $this->rustfs->objects($this->bucket)->presignedPost(
+        ['key' => 'uploads/${filename}'],
+        [['starts-with', '$key', 'uploads/'], ['content-length-range', 1, 100]],
+    );
+
+    $post = function (array $fields, string $content) use ($form): int {
+        $multipart = array_map(fn ($name, $value) => ['name' => $name, 'contents' => $value], array_keys($fields), $fields);
+        $multipart[] = ['name' => 'file', 'contents' => $content, 'filename' => 'a.txt'];
+
+        return (new Client(['http_errors' => false]))->post($form['url'], ['multipart' => $multipart])->getStatusCode();
+    };
+
+    expect($post($form['fields'], 'small'))->toBe(204)
+        ->and($post($form['fields'], str_repeat('x', 500)))->toBe(400)
+        ->and($post(['key' => 'other/a.txt'] + $form['fields'], 'small'))->toBe(400)
+        ->and(array_column(iterator_to_array($this->rustfs->objects($this->bucket)->list(), false), 'Key'))->toBe(['uploads/a.txt']);
+});
+
+it('restores an older version by copying it onto the same key', function () {
+    $this->rustfs->buckets()->create($this->bucket, versioning: true);
+    $objects = $this->rustfs->objects($this->bucket);
+
+    $draft = $objects->put('acme.pdf', 'draft')['VersionId'];
+    $objects->put('acme.pdf', 'final');
+    $objects->copy('acme.pdf', 'acme.pdf', sourceVersionId: $draft);
+
+    expect($objects->get('acme.pdf'))->toBe('draft')
+        ->and(iterator_count($objects->versions('acme.pdf')))->toBe(3);
 });

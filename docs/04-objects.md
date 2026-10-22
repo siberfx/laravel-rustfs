@@ -182,7 +182,7 @@ $url = $objects->temporaryUrl('invoices/42.pdf', '+10 minutes', [
     'VersionId' => $v1,
 ]);
 
-// Upload with PUT. The client must send any headers you signed (here Content-Type)
+// Upload with PUT. Send Content-Type: RustFS stores it, but does not enforce the signed value (use presigned POST for limits)
 $url = $objects->temporaryUploadUrl('incoming/photo.png', now()->addMinutes(5), ['ContentType' => 'image/png']);
 ```
 

@@ -112,7 +112,7 @@ Storage::disk('media')->temporaryUrl('invoices/2026-10.pdf', now()->addMinutes(1
     ->temporaryUploadUrl('incoming/' . Str::uuid(), now()->addMinutes(5), ['ContentType' => 'image/png']);
 ```
 
-The browser then sends `PUT $url` with the returned headers and the file as the body.
+The browser then sends `PUT $url` with the file as the body and its `Content-Type` header. On RustFS 1.0.x a presigned PUT does not enforce the signed type or any size limit. Use a presigned POST (see [Objects](04-objects.md#presigned-post-html-form-uploads-with-server-enforced-rules)) when the server must enforce them.
 
 ## RustFS extras on the disk
 
